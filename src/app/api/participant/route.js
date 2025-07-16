@@ -5,11 +5,14 @@ export async function POST(request) {
     try {
         const db = initializeDatabase();
         const body = await request.json();
-        const { group } = body;
+        const { groupNumber } = body;
 
-        const participantId = db.prepare(
-            `INSERT INTO participants (group) VALUES (?)`
-        ).run(group).lastInsertRowid;
+        // Generate a simple participant ID
+        const participantId = `participant_${crypto.randomUUID()}`;
+
+        db.prepare(
+            `INSERT INTO participants (participant_id, group_number) VALUES (?, ?)`
+        ).run(participantId, groupNumber);
 
         return new Response(JSON.stringify({ participantId: participantId }), {
             status: 201,
@@ -35,6 +38,7 @@ export async function DELETE(request) {
             headers: { "Content-Type": "application/json" }
         });
     } catch (error) {
+        console.error("Error deleting participant:", error);
         return new Response(JSON.stringify({ error: "Failed to delete participant" }), {
             status: 500,
             headers: { "Content-Type": "application/json" }
