@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@jspsych/plugin-html-keyboard-response": "^2.1.0",
     "better-sqlite3": "^11.10.0",
+    "jspsych": "^8.2.2",
     "next": "15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
