@@ -8,17 +8,17 @@ export async function POST(request) {
 
         // Prepare the insert statement
         const insertStmt = db.prepare(
-            `INSERT INTO responses (block, colour, is_word, is_correct, response_time, participant_id) VALUES (?, ?, ?, ?, ?, ?)`
+            `INSERT INTO responses (block, colour, is_word, is_correct, response_time, participant_id, trial_number) VALUES (?, ?, ?, ?, ?, ?, ?)`
         );
 
         // Use a transaction for better performance with multiple inserts
         const insertMany = db.transaction((responsesToInsert) => {
             for (const response of responsesToInsert) {
-                const { block, colour, isWord, isCorrect, responseTime, participantId } = response;
+                const { block, colour, isWord, isCorrect, responseTime, participantId, trialNumber } = response;
                 // Convert booleans to integers for SQLite compatibility
                 const isWordInt = isWord ? 1 : 0;
                 const isCorrectInt = isCorrect ? 1 : 0;
-                const result = insertStmt.run(block, colour, isWordInt, isCorrectInt, responseTime, participantId);
+                const result = insertStmt.run(block, colour, isWordInt, isCorrectInt, responseTime, participantId, trialNumber);
                 responseIds.push(result.lastInsertRowid);
             }
         });

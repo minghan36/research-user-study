@@ -33,6 +33,7 @@ export default function BlockTwoPage() {
             isCorrect: trial.correct,
             responseTime: trial.rt,
             participantId: participantId,
+            trialNumber: trial.trial_counter,
           }));
 
           fetch("/api/response", {
@@ -62,7 +63,7 @@ export default function BlockTwoPage() {
 
       var welcome = {
         type: htmlKeyboardResponse,
-        stimulus: "Press any key to begin.",
+        stimulus: '<div style="height:100vh; display:flex; justify-content:center; align-items:center;">Press any key to start</div>',
       };
       timeline.push(welcome);
 
@@ -95,15 +96,18 @@ export default function BlockTwoPage() {
 
       var fixation = {
         type: htmlKeyboardResponse,
-        stimulus: '<div style="font-size:60px;">+</div>',
+        stimulus: '<div style="height:100vh; display:flex; justify-content:center; align-items:center; flex-direction:column;"><div style="font-size:60px;">+</div><div style="font-size:18px; margin-top:20px;">Press C for non-word and N for word</div></div>',
         choices: "NO_KEYS",
         trial_duration: 1000,
       };
-
+      let trial_counter = 0;
       // Create test trials
       var test = {
         type: htmlKeyboardResponse,
-        stimulus: jsPsych.timelineVariable("stimulus"),
+        stimulus: function () {
+          const stim = `<div style="height:100vh; display:flex; justify-content:center; align-items:center; flex-direction:column;">${jsPsych.evaluateTimelineVariable("stimulus")}<div style="font-size:18px; margin-top:20px;">Press C for non-word and N for word</div></div>`;
+          return stim;
+        },
         choices: ["c", "n"],
         data: {
           task: "response",
@@ -114,8 +118,10 @@ export default function BlockTwoPage() {
         on_finish: function (data) {
           data.correct = jsPsych.pluginAPI.compareKeys(
             data.response,
-            data.correct_response
+            data.correct_response,
           );
+          trial_counter++;
+          data.trial_counter = trial_counter;
         },
       };
 

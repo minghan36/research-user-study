@@ -1,25 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParticipant } from "../../contexts/ParticipantContext";
 import { initJsPsych } from "jspsych";
 import htmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
-import {
-  realWords1,
-  nonWords1,
-} from "../../../lib/words";
+import { realWords1, nonWords1 } from "../../../lib/words";
 import { useRouter } from "next/navigation";
 
 export default function BlockOnePage() {
   const { participantId, groupNumber, setParticipantId } = useParticipant();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isStarted, setIsStarted] = useState(false);
+  const isCreatingParticipant = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
     const createNewParticipant = async () => {
-      if (!isStarted) {
+      if (participantId == null && !isLoading && !isCreatingParticipant.current) {
+        isCreatingParticipant.current = true; // Set immediately (synchronous)
         try {
           setIsLoading(true);
           const response = await fetch("/api/participant", {
@@ -35,10 +34,12 @@ export default function BlockOnePage() {
           }
 
           const data = await response.json();
+          console.log("Participant created:", data.participantId);
           setParticipantId(data.participantId);
         } catch (err) {
           console.error("Error creating participant:", err);
           setError("Failed to initialize participant. Please try again.");
+          isCreatingParticipant.current = false;
         } finally {
           setIsLoading(false);
         }
@@ -54,17 +55,18 @@ export default function BlockOnePage() {
       // Initialize jsPsych
       const jsPsych = initJsPsych({
         on_finish: function () {
-          var trials = jsPsych.data.get().filter({task: 'response'}).trials;
+          var trials = jsPsych.data.get().filter({ task: "response" }).trials;
           console.log("Experiment completed!");
           console.log(trials);
 
-          var formattedData = trials.map(trial => ({
+          var formattedData = trials.map((trial) => ({
             block: 1,
             colour: trial.colour,
             isWord: trial.is_word,
             isCorrect: trial.correct,
             responseTime: trial.rt,
             participantId: participantId,
+            trialNumber: trial.trial_counter,
           }));
 
           fetch("/api/response", {
@@ -73,7 +75,7 @@ export default function BlockOnePage() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify(formattedData),
-          })
+          });
 
           router.push("/break");
         },
@@ -83,44 +85,48 @@ export default function BlockOnePage() {
 
       var welcome = {
         type: htmlKeyboardResponse,
-        stimulus: "Press any key to begin.",
+        stimulus: '<div style="height:100vh; display:flex; justify-content:center; align-items:center;">Press any key to start</div>',
       };
       timeline.push(welcome);
 
       // Create stimuli array with real words and non-words
       var testStimuli = [];
-      
+
       // Add real words (orange, response 'n')
-      realWords1.forEach(word => {
+      realWords1.forEach((word) => {
         testStimuli.push({
           stimulus: `<div style="color: orange; font-size: 48px; font-weight: bold;">${word}</div>`,
           colour: "orange",
           correct_response: "n",
-          is_word: true
+          is_word: true,
         });
       });
-      
+
       // Add non-words (blue, response 'c')
-      nonWords1.forEach(nonWord => {
+      nonWords1.forEach((nonWord) => {
         testStimuli.push({
           stimulus: `<div style="color: blue; font-size: 48px; font-weight: bold;">${nonWord}</div>`,
           colour: "blue",
           correct_response: "c",
-          is_word: false
+          is_word: false,
         });
       });
 
       var fixation = {
         type: htmlKeyboardResponse,
-        stimulus: '<div style="font-size:60px;">+</div>',
+        stimulus:
+          '<div style="height:100vh; display:flex; justify-content:center; align-items:center; flex-direction:column;"><div style="font-size:60px;">+</div><div style="font-size:18px; margin-top:20px;">Press C for non-word and N for word</div></div>',
         choices: "NO_KEYS",
         trial_duration: 1000,
       };
-
+      let trial_counter = 0;
       // Create test trials
       var test = {
         type: htmlKeyboardResponse,
-        stimulus: jsPsych.timelineVariable("stimulus"),
+        stimulus: function () {
+          const stim = `<div style="height:100vh; display:flex; justify-content:center; align-items:center; flex-direction:column;">${jsPsych.evaluateTimelineVariable("stimulus")}<div style="font-size:18px; margin-top:20px;">Press C for non-word and N for word</div></div>`;
+          return stim;
+        },
         choices: ["c", "n"],
         data: {
           task: "response",
@@ -133,18 +139,19 @@ export default function BlockOnePage() {
             data.response,
             data.correct_response
           );
+          trial_counter++;
+          data.trial_counter = trial_counter;
         },
       };
 
       // Create timeline with repeated trials
       var testProcedure = {
         timeline: [fixation, test],
-        prompt: "Press 'C' for non-word, 'N' for word",
         timeline_variables: testStimuli,
         sample: {
           type: "fixed-repetitions",
-          size: 1
-        }
+          size: 1,
+        },
       };
 
       timeline.push(testProcedure);
