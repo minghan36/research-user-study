@@ -2,10 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useParticipant } from "../contexts/ParticipantContext";
+import { useEffect } from "react";
 
 export default function LandingPage() {
-  const { groupNumber, setGroupNumber } = useParticipant();
+  const { groupNumber, setGroupNumber, participantId, setParticipantId } = useParticipant();
   const router = useRouter();
+
+  useEffect(() => {
+    if (participantId) {
+      setParticipantId(null);
+    }
+  }, []);
 
   const handleStartStudy = () => {
     router.push("/block-one");
