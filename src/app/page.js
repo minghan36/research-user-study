@@ -47,6 +47,34 @@ export default function LandingPage() {
               <li>Press "C" if the text is a non-word</li>
             </ul>
             
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="text-center">
+                <h4 className="text-lg font-medium text-gray-800 dark:text-white mb-3">
+                  Word Example
+                </h4>
+                <div className="bg-gray-50 dark:bg-gray-700 p-1 rounded-lg">
+                  <img 
+                    src="/word-example.png" 
+                    alt="Example of a word"
+                    className="mx-auto w-72 h-48 object-contain"
+                  />
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <h4 className="text-lg font-medium text-gray-800 dark:text-white mb-3">
+                  Non-word Example
+                </h4>
+                <div className="bg-gray-50 dark:bg-gray-700 p-1 rounded-lg">
+                  <img 
+                    src="/nonword-example.png" 
+                    alt="Example of a non-word"
+                    className="mx-auto w-72 h-48 object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+            
             <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-400 p-4 mt-6">
               <p className="text-blue-800 dark:text-blue-200">
                 <strong>Estimated time:</strong> 7 minutes per block<br />

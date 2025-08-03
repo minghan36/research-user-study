@@ -1,3 +1,4 @@
+import ShortUniqueId from "short-unique-id";
 import { initializeDatabase } from "../../../../lib/init-db";
 
 
@@ -6,9 +7,9 @@ export async function POST(request) {
         const db = initializeDatabase();
         const body = await request.json();
         const { groupNumber } = body;
-
+        const uid = new ShortUniqueId({ length: 10 });
         // Generate a simple participant ID
-        const participantId = `participant_${crypto.randomUUID()}`;
+        const participantId = `participant_${uid.rnd()}`;
 
         db.prepare(
             `INSERT INTO participants (participant_id, group_number) VALUES (?, ?)`
@@ -71,6 +72,56 @@ export async function PATCH(request) {
         if (updates.complete !== undefined) {
             updateFields.push("complete = ?");
             values.push(updates.complete ? 1 : 0);
+        }
+
+        if (updates.startBlockOne !== undefined) {
+            updateFields.push("block_one_start = ?");
+            values.push(updates.startBlockOne);
+        }
+
+        if (updates.startBlockTwo !== undefined) {
+            updateFields.push("block_two_start = ?");
+            values.push(updates.startBlockTwo);
+        }
+
+        if (updates.endBlockOne !== undefined) {
+            updateFields.push("block_one_end = ?");
+            values.push(updates.endBlockOne);
+        }
+
+        if (updates.endBlockTwo !== undefined) {
+            updateFields.push("block_two_end = ?");
+            values.push(updates.endBlockTwo);
+        }
+
+        if (updates.blockOneMean !== undefined) {
+            updateFields.push("block_one_mean = ?");
+            values.push(updates.blockOneMean);
+        }
+
+        if (updates.blockTwoMean !== undefined) {
+            updateFields.push("block_two_mean = ?");
+            values.push(updates.blockTwoMean);
+        }
+
+        if (updates.blockOneAccuracy !== undefined) {
+            updateFields.push("block_one_accuracy = ?");
+            values.push(updates.blockOneAccuracy);
+        }
+
+        if (updates.blockTwoAccuracy !== undefined) {
+            updateFields.push("block_two_accuracy = ?");
+            values.push(updates.blockTwoAccuracy);
+        }
+
+        if (updates.interventionStart !== undefined) {
+            updateFields.push("intervention_start = ?");
+            values.push(updates.interventionStart);
+        }
+
+        if (updates.interventionEnd !== undefined) {
+            updateFields.push("intervention_end = ?");
+            values.push(updates.interventionEnd);
         }
 
         if (updateFields.length === 0) {

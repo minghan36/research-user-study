@@ -5,8 +5,8 @@ import { useParticipant } from "../../contexts/ParticipantContext";
 import { initJsPsych } from "jspsych";
 import htmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
 import {
-  realWords1,
-  nonWords1,
+  realWords2,
+  nonWords2,
 } from "../../../lib/words";
 import { useRouter } from "next/navigation";
 
@@ -44,6 +44,10 @@ export default function BlockTwoPage() {
             body: JSON.stringify(formattedData),
           })
 
+          var endTime = new Date().toISOString();
+          var start = jsPsych.data.get().filter({ task: "start" }).trials;
+          var mean = jsPsych.data.get().filter({ task: "response" }).select("rt").mean();
+          var accuracy = jsPsych.data.get().filter({ task: "response", correct: true }).count() / jsPsych.data.get().filter({ task: "response" }).count();
           fetch("/api/participant", {
             method: "PATCH",
             headers: {
@@ -52,6 +56,10 @@ export default function BlockTwoPage() {
             body: JSON.stringify({
               participantId: participantId,
               complete: true,
+              startBlockTwo: start[0].timeStamp,
+              endBlockTwo: endTime,
+              blockTwoMean: mean,
+              blockTwoAccuracy: accuracy,
             }),
           });
 
@@ -60,20 +68,27 @@ export default function BlockTwoPage() {
       });
       // Create a simple experiment timeline
       var timeline = [];
-
+      var startTime = null
       var welcome = {
         type: htmlKeyboardResponse,
         stimulus: '<div style="height:100vh; display:flex; justify-content:center; align-items:center;">Press any key to start</div>',
+        data: {
+          task: "start",
+        },
+        on_finish: function (data) {
+          startTime = new Date()
+          data.timeStamp = startTime.toISOString();
+        }
       };
       timeline.push(welcome);
 
       // Create stimuli array with real words and non-words
       var testStimuli = [];
 
-      var randomColours = jsPsych.randomization.repeat(["orange", "blue"], 5);
+      var randomColours = jsPsych.randomization.repeat(["orange", "blue"], 248);
       
       // Add real words (orange, response 'n')
-      realWords1.forEach(word => {
+      realWords2.forEach(word => {
         const randomColour = randomColours.pop();
         testStimuli.push({
           stimulus: `<div style="color: ${randomColour}; font-size: 48px; font-weight: bold;">${word}</div>`,
@@ -84,7 +99,7 @@ export default function BlockTwoPage() {
       });
       
       // Add non-words (blue, response 'c')
-      nonWords1.forEach(nonWord => {
+      nonWords2.forEach(nonWord => {
         const randomColour = randomColours.pop();
         testStimuli.push({
           stimulus: `<div style="color: ${randomColour}; font-size: 48px; font-weight: bold;">${nonWord}</div>`,
@@ -122,6 +137,10 @@ export default function BlockTwoPage() {
           );
           trial_counter++;
           data.trial_counter = trial_counter;
+          const timeElapsed = new Date() - startTime;
+          if (timeElapsed > 420000) { 
+            return jsPsych.abortExperiment("");
+          }
         },
       };
 

@@ -19,10 +19,10 @@ export default function EndPage() {
             Thank You! 🎉
           </h1>
           <p className="text-xl text-gray-700 dark:text-gray-300 mb-6">
-            You have successfully completed the entire experiment.
+            You have successfully block 2.
           </p>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
-            Your participation is greatly appreciated and will contribute valuable data to our research.
+            Please notify the experimenter that you are done. We will give you instructions.
           </p>
         </div>
         

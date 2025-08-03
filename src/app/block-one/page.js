@@ -76,17 +76,41 @@ export default function BlockOnePage() {
             },
             body: JSON.stringify(formattedData),
           });
+          var endTime = new Date().toISOString();
+          var start = jsPsych.data.get().filter({ task: "start" }).trials;
+          var mean = jsPsych.data.get().filter({ task: "response" }).select("rt").mean();
+          var accuracy = jsPsych.data.get().filter({ task: "response", correct: true }).count() / jsPsych.data.get().filter({ task: "response" }).count();
+          fetch("/api/participant", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              participantId: participantId,
+              startBlockOne: start[0].timeStamp,
+              endBlockOne: endTime,
+              blockOneMean: mean,
+              blockOneAccuracy: accuracy,
+            }),
+          });
 
           router.push("/break");
         },
       });
       // Create a simple experiment timeline
       var timeline = [];
-
+      var startTime = null
       var welcome = {
         type: htmlKeyboardResponse,
         stimulus: '<div style="height:100vh; display:flex; justify-content:center; align-items:center;">Press any key to start</div>',
-      };
+        data: {
+          task: "start",
+        },
+        on_finish: function (data) {
+          startTime = new Date()
+          data.timeStamp = startTime.toISOString();
+        }
+      }
       timeline.push(welcome);
 
       // Create stimuli array with real words and non-words
@@ -141,6 +165,10 @@ export default function BlockOnePage() {
           );
           trial_counter++;
           data.trial_counter = trial_counter;
+          const timeElapsed = new Date() - startTime;
+          if (timeElapsed > 20000) { 
+            return jsPsych.abortExperiment("");
+          }
         },
       };
 
