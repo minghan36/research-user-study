@@ -8,6 +8,7 @@ export default function BreakPage() {
   const router = useRouter();
   const { participantId } = useParticipant();
   const [interventionActive, setInterventionActive] = useState(false);
+  const [ interventionCompeleted, setInterventionCompleted ] = useState(false);
 
   const handleContinue = () => {
     // Navigate to block two
@@ -26,6 +27,7 @@ export default function BreakPage() {
           interventionEnd: time,
         }),
       });
+      setInterventionCompleted(true);
     } else {
       // Start intervention logic
       fetch("/api/participant", {

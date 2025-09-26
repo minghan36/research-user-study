@@ -166,7 +166,7 @@ export default function BlockOnePage() {
           trial_counter++;
           data.trial_counter = trial_counter;
           const timeElapsed = new Date() - startTime;
-          if (timeElapsed > 20000) { 
+          if (timeElapsed > 420000) { 
             return jsPsych.abortExperiment("");
           }
         },
